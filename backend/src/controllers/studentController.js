@@ -1,4 +1,5 @@
-﻿import Student from '../models/Student.js'
+﻿import { Op } from 'sequelize'
+import Student from '../models/Student.js'
 import { successResponse, errorResponse } from '../utils/response.js'
 
 export const getAllStudents = async (req, res, next) => {
@@ -8,10 +9,10 @@ export const getAllStudents = async (req, res, next) => {
     let where = {}
     if (search) {
       where = {
-        [require('sequelize').Op.or]: [
-          { name: { [require('sequelize').Op.like]: \%\%\ } },
-          { email: { [require('sequelize').Op.like]: \%\%\ } },
-          { nisn: { [require('sequelize').Op.like]: \%\%\ } },
+        [Op.or]: [
+          { name: { [Op.like]: '%' + search + '%' } },
+          { email: { [Op.like]: '%' + search + '%' } },
+          { nisn: { [Op.like]: '%' + search + '%' } },
         ],
       }
     }

@@ -14,7 +14,6 @@ dotenv.config()
 const app = express()
 const PORT = process.env.PORT || 3000
 
-// Middlewares
 app.use(helmet())
 app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
@@ -25,18 +24,14 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(express.static('public'))
 
-// Routes
 app.use('/api', routes)
 
-// Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' })
 })
 
-// Error handling
 app.use(errorHandlerMiddleware)
 
-// 404 handler
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -44,21 +39,20 @@ app.use((req, res) => {
   })
 })
 
-// Database connection and server start
 const startServer = async () => {
   try {
     await sequelize.authenticate()
-    console.log('✓ Database connected successfully')
+    console.log('Database connected successfully')
 
     await sequelize.sync({ alter: false })
-    console.log('✓ Database models synced')
+    console.log('Database models synced')
 
     app.listen(PORT, () => {
-      console.log(\✓ Server running on http://localhost:\\)
-      console.log(\✓ API available at http://localhost:\/api\)
+      console.log('Server running on http://localhost:' + PORT)
+      console.log('API available at http://localhost:' + PORT + '/api')
     })
   } catch (err) {
-    console.error('✗ Server startup error:', err)
+    console.error('Server startup error:', err)
     process.exit(1)
   }
 }
