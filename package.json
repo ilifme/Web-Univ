@@ -1,0 +1,28 @@
+﻿{
+  "name": "web-univ",
+  "version": "1.0.0",
+  "description": "Universitas Purbayan Admin Dashboard - React + Node.js",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"npm --prefix frontend run dev\" \"npm --prefix backend run dev\"",
+    "frontend:dev": "npm --prefix frontend run dev",
+    "backend:dev": "npm --prefix backend run dev",
+    "frontend:build": "npm --prefix frontend run build",
+    "backend:build": "npm --prefix backend run build",
+    "install:all": "npm install && npm --prefix frontend install && npm --prefix backend install"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  },
+  "keywords": [
+    "react",
+    "admin-dashboard",
+    "node.js",
+    "express",
+    "universitas",
+    "purbayan"
+  ],
+  "author": "",
+  "license": "MIT"
+}
