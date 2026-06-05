@@ -8,21 +8,25 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Check if user is already logged in
-    checkAuth()
-      .then((response) => {
-        setUser(response.data.user)
-      })
-      .catch(() => {
+    const initAuth = async () => {
+      try {
+        const response = await checkAuth()
+        setUser(response.data.data.user)
+      } catch (err) {
         setUser(null)
-      })
-      .finally(() => {
+      } finally {
         setLoading(false)
-      })
+      }
+    }
+
+    initAuth()
   }, [])
 
   const login = (user) => setUser(user)
-  const logout = () => setUser(null)
+  const logout = () => {
+    setUser(null)
+    localStorage.removeItem('token')
+  }
 
   return (
     <AuthContext.Provider value={{ user, loading, login, logout }}>

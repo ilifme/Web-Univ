@@ -1,63 +1,119 @@
-﻿import { useContext } from 'react'
-import { useNavigate } from 'react-router-dom'
+﻿import { useState, useEffect, useContext } from 'react'
 import { AuthContext } from '../context/AuthContext'
-import { logoutUser } from '../services/authService'
+import apiClient from '../services/api'
 
 export default function DashboardPage() {
-  const { user, logout } = useContext(AuthContext)
-  const navigate = useNavigate()
+  const { user } = useContext(AuthContext)
+  const [stats, setStats] = useState({
+    students: 0,
+    teachers: 0,
+    admins: 0,
+    headmasters: 0,
+  })
+  const [loading, setLoading] = useState(true)
 
-  const handleLogout = async () => {
+  useEffect(() => {
+    fetchStats()
+  }, [])
+
+  const fetchStats = async () => {
     try {
-      await logoutUser()
-      logout()
-      navigate('/login')
+      const [studentsRes, teachersRes, adminsRes, headmastersRes] = await Promise.all([
+        apiClient.get('/students?limit=1'),
+        apiClient.get('/teachers?limit=1'),
+        apiClient.get('/admins?limit=1'),
+        apiClient.get('/headmasters?limit=1'),
+      ])
+
+      setStats({
+        students: studentsRes.data.data.pagination.total,
+        teachers: teachersRes.data.data.pagination.total,
+        admins: adminsRes.data.data.pagination.total,
+        headmasters: headmastersRes.data.data.pagination.total,
+      })
     } catch (err) {
-      console.error('Logout error:', err)
+      console.error('Failed to fetch stats:', err)
+    } finally {
+      setLoading(false)
     }
   }
 
-  return (
-    <div className='min-h-screen bg-gray-100'>
-      <nav className='bg-blue-600 text-white p-4 shadow'>
-        <div className='max-w-7xl mx-auto flex justify-between items-center'>
-          <h1 className='text-2xl font-bold'>Admin Dashboard</h1>
-          <div className='flex items-center gap-4'>
-            <span>Welcome, {user?.name || 'Admin'}</span>
-            <button
-              onClick={handleLogout}
-              className='bg-red-500 hover:bg-red-600 px-4 py-2 rounded'
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      </nav>
+  if (loading) {
+    return <div className='text-center py-8'>Loading...</div>
+  }
 
-      <div className='max-w-7xl mx-auto p-6'>
-        <div className='bg-white rounded-lg shadow p-6'>
-          <h2 className='text-2xl font-bold mb-4'>Dashboard</h2>
-          <p className='text-gray-600 mb-4'>Selamat datang di Admin Dashboard Universitas Purbayan</p>
-          
-          <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
-            <div className='bg-blue-50 p-4 rounded'>
-              <h3 className='font-semibold text-blue-900'>Students</h3>
-              <p className='text-2xl font-bold text-blue-600'>-</p>
-            </div>
-            <div className='bg-green-50 p-4 rounded'>
-              <h3 className='font-semibold text-green-900'>Teachers</h3>
-              <p className='text-2xl font-bold text-green-600'>-</p>
-            </div>
-            <div className='bg-yellow-50 p-4 rounded'>
-              <h3 className='font-semibold text-yellow-900'>News</h3>
-              <p className='text-2xl font-bold text-yellow-600'>-</p>
-            </div>
-            <div className='bg-purple-50 p-4 rounded'>
-              <h3 className='font-semibold text-purple-900'>Announcements</h3>
-              <p className='text-2xl font-bold text-purple-600'>-</p>
-            </div>
+  return (
+    <div>
+      <h1 className='text-3xl font-bold mb-8'>Dashboard</h1>
+      <p className='text-gray-600 mb-8'>Welcome back, {user?.name || 'Admin'}!</p>
+
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
+        <StatCard icon='👨‍🎓' title='Students' value={stats.students} color='blue' />
+        <StatCard icon='👨‍🏫' title='Teachers' value={stats.teachers} color='green' />
+        <StatCard icon='👔' title='Admins' value={stats.admins} color='yellow' />
+        <StatCard icon='👨‍💼' title='Headmasters' value={stats.headmasters} color='purple' />
+      </div>
+
+      <div className='mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6'>
+        <QuickStatsBox title='System Status' items={[
+          { label: 'Database', status: 'Connected', color: 'green' },
+          { label: 'API', status: 'Running', color: 'green' },
+          { label: 'Auth', status: 'Active', color: 'green' },
+        ]} />
+        
+        <QuickStatsBox title='Quick Actions' items={[
+          { label: 'Add Student', icon: '➕' },
+          { label: 'Add Teacher', icon: '➕' },
+          { label: 'Add Admin', icon: '➕' },
+          { label: 'Generate Report', icon: '📊' },
+        ]} />
+      </div>
+    </div>
+  )
+}
+
+function StatCard({ icon, title, value, color }) {
+  const colorClasses = {
+    blue: 'bg-blue-50 border-blue-200',
+    green: 'bg-green-50 border-green-200',
+    yellow: 'bg-yellow-50 border-yellow-200',
+    purple: 'bg-purple-50 border-purple-200',
+  }
+
+  const textClasses = {
+    blue: 'text-blue-600',
+    green: 'text-green-600',
+    yellow: 'text-yellow-600',
+    purple: 'text-purple-600',
+  }
+
+  return (
+    <div className={`p-6 rounded-lg border ${colorClasses[color]} shadow-sm`}>
+      <div className='text-3xl mb-2'>{icon}</div>
+      <h3 className='text-gray-700 font-semibold'>{title}</h3>
+      <p className={`text-3xl font-bold ${textClasses[color]} mt-2`}>{value}</p>
+    </div>
+  )
+}
+
+function QuickStatsBox({ title, items }) {
+  return (
+    <div className='bg-white p-6 rounded-lg shadow-sm border'>
+      <h3 className='text-lg font-semibold mb-4'>{title}</h3>
+      <div className='space-y-3'>
+        {items.map((item, idx) => (
+          <div key={idx} className='flex justify-between items-center pb-3 border-b last:border-b-0'>
+            <span className='text-gray-700'>{item.label}</span>
+            {item.status && (
+              <span className={`px-3 py-1 rounded text-sm font-medium text-white bg-${item.color}-500`}>
+                {item.status}
+              </span>
+            )}
+            {item.icon && (
+              <span className='text-xl'>{item.icon}</span>
+            )}
           </div>
-        </div>
+        ))}
       </div>
     </div>
   )
